@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+Jobs in the {{ category.name }} category
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<link rel="stylesheet" href="{{ asset('css/jobs.css') }}" type="text/css" media="all" />
+{% endblock %}
+
+{% block body %}
+<div class="category">
+    <div class="feed">
+        <a href="">Feed</a>
+    </div>
+    <h1>{{ category.name }}</h1>
+</div>
+{{ include('job/list.html.twig') }}
+{% endblock %}
