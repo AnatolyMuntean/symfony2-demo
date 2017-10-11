@@ -24,7 +24,7 @@ class JobType extends AbstractType
                     ]
                 )
                 ->add('company')
-                ->add('logo', 'file',
+                ->add('file', 'file',
                     [
                         'required' => false,
                         'label'    => 'Company logo',
