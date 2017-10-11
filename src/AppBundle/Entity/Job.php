@@ -83,7 +83,6 @@ class Job
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
-     * @Assert\NotBlank()
      */
     private $token;
 
@@ -555,5 +554,46 @@ class Job
     static public function getTypeValues()
     {
         return array_keys(self::getTypes());
+    }
+
+    /**
+     * @ORM\PrePersist()
+     */
+    public function setTokenValue()
+    {
+        if (!$this->getToken()) {
+            $this->token = sha1($this->getEmail().mt_rand(1111,9999));
+        }
+    }
+
+    public function isExpired()
+    {
+        return $this->getDaysBeforeExpire() < 0;
+    }
+
+    public function expiresSoon()
+    {
+        return $this->getDaysBeforeExpire() < 5;
+    }
+
+    public function getDaysBeforeExpire()
+    {
+        return ceil(($this->getExpiresAt()->format('U') - time()) / 86400);
+    }
+
+    public function publish()
+    {
+        $this->setIsActivated(true);
+    }
+
+    public function extend()
+    {
+        if (!$this->expiresSoon()) {
+            return false;
+        }
+
+        $this->expiresAt = new \DateTime(date('Y-m-d H:i:s', time() + 86400 * 30));
+
+        return true;
     }
 }

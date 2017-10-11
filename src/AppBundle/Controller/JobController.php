@@ -17,7 +17,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 /**
  * Job controller.
  *
- * @Route("job")
+ * @Route("/job")
  */
 class JobController extends Controller
 {
@@ -74,9 +74,9 @@ class JobController extends Controller
             $em->flush();
 
             return $this->redirectToRoute(
-                'job_show',
+                'job_preview',
                 [
-                    'id'       => $job->getId(),
+                    'token'    => $job->getToken(),
                     'company'  => $job->getCompanySlug(),
                     'location' => $job->getLocationSlug(),
                     'position' => $job->getPositionSlug(),
@@ -96,7 +96,7 @@ class JobController extends Controller
     /**
      * Finds and displays a job entity.
      *
-     * @Route("/job/{company}/{location}/{id}/{position}", name="job_show", requirements={"id" = "\d+"})
+     * @Route("/{company}/{location}/{id}/{position}", name="job_show", requirements={"id" = "\d+"})
      * @ParamConverter("job", options={"repository_method" = "getActiveJob"})
      * @Method("GET")
      */
@@ -116,11 +116,15 @@ class JobController extends Controller
     /**
      * Displays a form to edit an existing job entity.
      *
-     * @Route("/{id}/edit", name="job_edit")
+     * @Route("/{token}/edit", name="job_edit")
      * @Method({"GET", "POST"})
      */
     public function editAction(Request $request, Job $job)
     {
+        if ($job->getIsActivated()) {
+            throw $this->createNotFoundException('Job is activated and cannot be edited.');
+        }
+
         if ($request->getMethod() != Request::METHOD_POST) {
             $logoPath = $this->getParameter('jobs_directory').'/'.$job->getLogo();
             if (is_file($logoPath)) {
@@ -138,7 +142,15 @@ class JobController extends Controller
                  ->getManager()
                  ->flush();
 
-            return $this->redirectToRoute('job_edit', ['id' => $job->getId()]);
+            return $this->redirectToRoute(
+                'job_preview',
+                [
+                    'token'    => $job->getToken(),
+                    'company'  => $job->getCompanySlug(),
+                    'location' => $job->getLocationSlug(),
+                    'position' => $job->getPositionSlug(),
+                ]
+            );
         }
 
         return $this->render(
@@ -154,7 +166,7 @@ class JobController extends Controller
     /**
      * Deletes a job entity.
      *
-     * @Route("/{id}", name="job_delete")
+     * @Route("/{token}/delete", name="job_delete")
      * @Method("DELETE")
      */
     public function deleteAction(Request $request, Job $job)
@@ -182,8 +194,113 @@ class JobController extends Controller
     private function createDeleteForm(Job $job)
     {
         return $this->createFormBuilder()
-                    ->setAction($this->generateUrl('job_delete', ['id' => $job->getId()]))
+                    ->setAction($this->generateUrl('job_delete', ['token' => $job->getToken()]))
                     ->setMethod('DELETE')
+                    ->getForm();
+    }
+
+    /**
+     * @Route("/{company}/{location}/{token}/{position}", name="job_preview")
+     * @ParamConverter("job", options={"exclude": {"company","location","position"}})
+     * @Method("GET")
+     */
+    public function previewAction(Job $job)
+    {
+        $deleteForm = $this->createDeleteForm($job);
+        $publishForm = $this->createPublishForm($job);
+        $extendForm = $this->createExtendForm($job);
+
+        return $this->render(
+            'job/show.html.twig',
+            [
+                'job'          => $job,
+                'delete_form'  => $deleteForm->createView(),
+                'publish_form' => $publishForm->createView(),
+                'extend_form' => $extendForm->createView(),
+            ]
+        );
+    }
+
+    /**
+     * @Route("/{token}/publish", name="job_publish")
+     * @Method("POST")
+     */
+    public function publishAction(Request $request, Job $job)
+    {
+        $form = $this->createPublishForm($job);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em = $this->getDoctrine()
+                       ->getManager();
+            $job->publish();
+            $em->persist($job);
+            $em->flush();
+
+            $this->addFlash('notice', 'Job is online for 30 days.');
+        }
+
+        return $this->redirectToRoute(
+            'job_preview',
+            [
+                'token'    => $job->getToken(),
+                'company'  => $job->getCompanySlug(),
+                'location' => $job->getLocationSlug(),
+                'position' => $job->getPositionSlug(),
+            ]
+        );
+    }
+
+    private function createPublishForm(Job $job)
+    {
+        return $this->createFormBuilder(['token' => $job->getToken()])
+                    ->add('token', 'hidden')
+                    ->setMethod('POST')
+                    ->getForm();
+    }
+
+    public function extendAction(Request $request, Job $job)
+    {
+        $form = $this->createExtendForm($job);
+        $form->handleRequest($request);
+
+        if ($form->isValid()) {
+            $em = $this->getDoctrine()
+                       ->getManager();
+
+            if (!$job->extend()) {
+                throw $this->createNotFoundException('Unable to extend the job.');
+            }
+
+            $em->persist($job);
+            $em->flush();
+
+            $this->addFlash(
+                'notice',
+                sprintf(
+                    'Job validity extended until %s.',
+                    $job->getExpiresAt()
+                        ->format('Y-m-d')
+                )
+            );
+        }
+
+        return $this->redirectToRoute(
+            'job_preview',
+            [
+                'token'    => $job->getToken(),
+                'company'  => $job->getCompanySlug(),
+                'location' => $job->getLocationSlug(),
+                'position' => $job->getPositionSlug(),
+            ]
+        );
+    }
+
+    private function createExtendForm(Job $job)
+    {
+        return $this->createFormBuilder(['token' => $job->getToken()])
+                    ->add('token', 'hidden')
+                    ->setMethod('POST')
                     ->getForm();
     }
 }

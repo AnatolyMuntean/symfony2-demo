@@ -35,7 +35,6 @@ class JobType extends AbstractType
                 ->add('location')
                 ->add('description')
                 ->add('howToApply', null, ['label' => 'How to apply?'])
-                ->add('token')
                 ->add('isPublic', null, ['label' => 'Public?'])
                 ->add('email');
     }
@@ -57,8 +56,6 @@ class JobType extends AbstractType
      */
     public function getBlockPrefix()
     {
-        return 'appbundle_job';
+        return 'job';
     }
-
-
 }
