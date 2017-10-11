@@ -8,6 +8,7 @@ imports:
 parameters:
     locale: en
     max_jobs_on_homepage: 10
+    jobs_directory: '%kernel.root_dir%/../web/uploads/jobs'
 
 framework:
     #esi: ~

@@ -9,6 +9,8 @@ use AppBundle\Entity\Job;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
@@ -71,7 +73,15 @@ class JobController extends Controller
             $em->persist($job);
             $em->flush();
 
-            return $this->redirectToRoute('job_show', ['id' => $job->getId()]);
+            return $this->redirectToRoute(
+                'job_show',
+                [
+                    'id'       => $job->getId(),
+                    'company'  => $job->getCompanySlug(),
+                    'location' => $job->getLocationSlug(),
+                    'position' => $job->getPositionSlug(),
+                ]
+            );
         }
 
         return $this->render(
@@ -111,6 +121,14 @@ class JobController extends Controller
      */
     public function editAction(Request $request, Job $job)
     {
+        if ($request->getMethod() != Request::METHOD_POST) {
+            $logoPath = $this->getParameter('jobs_directory').'/'.$job->getLogo();
+            if (is_file($logoPath)) {
+                $job->setLogo(
+                    new File($logoPath)
+                );
+            }
+        }
         $deleteForm = $this->createDeleteForm($job);
         $editForm = $this->createForm('AppBundle\Form\JobType', $job);
         $editForm->handleRequest($request);

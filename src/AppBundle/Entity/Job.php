@@ -36,6 +36,7 @@ class Job
     /**
      * @ORM\Column(type="string", length=255)
      * @Assert\NotBlank()
+     * @Assert\Choice(callback="getTypeValues")
      */
     private $type;
 
@@ -47,13 +48,12 @@ class Job
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
-     * @Assert\NotBlank()
+     * @Assert\Image()
      */
     private $logo;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
-     * @Assert\NotBlank()
      */
     private $url;
 
@@ -100,12 +100,12 @@ class Job
     /**
      * @ORM\Column(type="string", length=255)
      * @Assert\NotBlank()
+     * @Assert\Email()
      */
     private $email;
 
     /**
      * @ORM\Column(type="datetime")
-     * @Assert\NotBlank()
      */
     private $expiresAt;
 
@@ -116,14 +116,13 @@ class Job
 
     /**
      * @ORM\Column(type="datetime")
-     * @Assert\NotBlank()
      */
     private $updatedAt;
 
     /**
      * Get id
      *
-     * @return integer 
+     * @return integer
      */
     public function getId()
     {
@@ -146,7 +145,7 @@ class Job
     /**
      * Get type
      *
-     * @return string 
+     * @return string
      */
     public function getType()
     {
@@ -169,7 +168,7 @@ class Job
     /**
      * Get company
      *
-     * @return string 
+     * @return string
      */
     public function getCompany()
     {
@@ -192,7 +191,7 @@ class Job
     /**
      * Get logo
      *
-     * @return string 
+     * @return string
      */
     public function getLogo()
     {
@@ -215,7 +214,7 @@ class Job
     /**
      * Get url
      *
-     * @return string 
+     * @return string
      */
     public function getUrl()
     {
@@ -238,7 +237,7 @@ class Job
     /**
      * Get position
      *
-     * @return string 
+     * @return string
      */
     public function getPosition()
     {
@@ -261,7 +260,7 @@ class Job
     /**
      * Get location
      *
-     * @return string 
+     * @return string
      */
     public function getLocation()
     {
@@ -284,7 +283,7 @@ class Job
     /**
      * Get description
      *
-     * @return string 
+     * @return string
      */
     public function getDescription()
     {
@@ -307,7 +306,7 @@ class Job
     /**
      * Get howToApply
      *
-     * @return string 
+     * @return string
      */
     public function getHowToApply()
     {
@@ -330,7 +329,7 @@ class Job
     /**
      * Get token
      *
-     * @return string 
+     * @return string
      */
     public function getToken()
     {
@@ -353,7 +352,7 @@ class Job
     /**
      * Get isPublic
      *
-     * @return boolean 
+     * @return boolean
      */
     public function getIsPublic()
     {
@@ -376,7 +375,7 @@ class Job
     /**
      * Get isActivated
      *
-     * @return boolean 
+     * @return boolean
      */
     public function getIsActivated()
     {
@@ -399,7 +398,7 @@ class Job
     /**
      * Get email
      *
-     * @return string 
+     * @return string
      */
     public function getEmail()
     {
@@ -422,7 +421,7 @@ class Job
     /**
      * Get expiresAt
      *
-     * @return \DateTime 
+     * @return \DateTime
      */
     public function getExpiresAt()
     {
@@ -445,7 +444,7 @@ class Job
     /**
      * Get createdAt
      *
-     * @return \DateTime 
+     * @return \DateTime
      */
     public function getCreatedAt()
     {
@@ -468,7 +467,7 @@ class Job
     /**
      * Get updatedAt
      *
-     * @return \DateTime 
+     * @return \DateTime
      */
     public function getUpdatedAt()
     {
@@ -491,7 +490,7 @@ class Job
     /**
      * Get category
      *
-     * @return \AppBundle\Entity\Category 
+     * @return \AppBundle\Entity\Category
      */
     public function getCategory()
     {
@@ -523,7 +522,8 @@ class Job
     public function setExpiredAt()
     {
         if (!$this->getExpiresAt()) {
-            $now = $this->getCreatedAt() ? $this->getCreatedAt()->format('U') : time();
+            $now = $this->getCreatedAt() ? $this->getCreatedAt()
+                                                ->format('U') : time();
             $this->expiresAt = new \DateTime(date('Y-m-d H:i:s', $now + 86400 * 30));
         }
     }
@@ -541,5 +541,19 @@ class Job
     public function getLocationSlug()
     {
         return Jobeet::slugify($this->getLocation());
+    }
+
+    static public function getTypes()
+    {
+        return [
+            'full-time' => 'Full time',
+            'part-time' => 'Part time',
+            'freelance' => 'Freelance',
+        ];
+    }
+
+    static public function getTypeValues()
+    {
+        return array_keys(self::getTypes());
     }
 }
