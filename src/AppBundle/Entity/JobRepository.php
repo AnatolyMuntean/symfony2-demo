@@ -6,10 +6,11 @@
 namespace AppBundle\Entity;
 
 use Doctrine\ORM\EntityRepository;
+use Symfony\Component\Security\Acl\Exception\Exception;
 
 class JobRepository extends EntityRepository
 {
-    public function getActiveJobs($category_id = null, $max = null)
+    public function getActiveJobs($category_id = null, $max = null, $offset = null)
     {
         $qb = $this->createQueryBuilder('j')
                    ->where('j.expiresAt > :date')
@@ -20,6 +21,10 @@ class JobRepository extends EntityRepository
 
         if ($max) {
             $qb->setMaxResults($max);
+        }
+
+        if ($offset) {
+            $qb->setFirstResult($offset);
         }
 
         if ($category_id) {
@@ -82,5 +87,26 @@ class JobRepository extends EntityRepository
                       ->getQuery();
 
         return $query->execute();
+    }
+
+    public function getLatestPost()
+    {
+        $query = $this->createQueryBuilder('j')
+            ->where('j.expiresAt > :date')
+            ->setParameter(':date', date('Y-m-d H:i:s', time()))
+            ->andWhere('j.isActivated = :activated')
+            ->setParameter(':activated', 1)
+            ->orderBy('j.expiresAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery();
+
+        try {
+            $job = $query->getSingleResult();
+        }
+        catch(\Doctrine\Orm\NoResultException $e) {
+            $job = null;
+        }
+
+        return $job;
     }
 }

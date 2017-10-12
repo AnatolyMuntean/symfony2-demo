@@ -27,7 +27,7 @@ class JobController extends Controller
      * @Route("/", name="job_index")
      * @Method("GET")
      */
-    public function indexAction()
+    public function indexAction(Request $request)
     {
         $em = $this->getDoctrine()
                    ->getManager();
@@ -47,10 +47,17 @@ class JobController extends Controller
             );
         }
 
+        $format = $request->getRequestFormat();
+
+        /** @var \Symfony\Bundle\FrameworkBundle\Routing\Router $router */
+        $router = $this->get('router');
+
         return $this->render(
-            'job/index.html.twig',
+            'job/index.'.$format.'.twig',
             [
                 'categories' => $categories,
+                'lastUpdated' => $em->getRepository('AppBundle:Job')->getLatestPost()->getCreatedAt()->format(DATE_ATOM),
+                'feed_id' => sha1($router->generate('job_index', ['_format' => 'atom'], true))
             ]
         );
     }
