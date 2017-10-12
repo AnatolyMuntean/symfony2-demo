@@ -15,16 +15,16 @@ class LoadCategoryData extends AbstractFixture implements OrderedFixtureInterfac
     public function load(ObjectManager $em)
     {
         $design = new Category();
-        $design->setName('design');
+        $design->setName('Design');
 
         $programming = new Category();
-        $programming->setName('programming');
+        $programming->setName('Programming');
 
         $manager = new Category();
-        $manager->setName('manager');
+        $manager->setName('Manager');
 
         $administrator = new Category();
-        $administrator->setName('administrator');
+        $administrator->setName('Administrator');
 
         $em->persist($design);
         $em->persist($programming);

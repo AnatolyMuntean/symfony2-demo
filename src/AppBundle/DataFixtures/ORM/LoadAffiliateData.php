@@ -25,7 +25,7 @@ class LoadAffiliateData extends AbstractFixture implements OrderedFixtureInterfa
         $affiliate = new Affiliate();
         $affiliate->setUrl('/');
         $affiliate->setEmail('dummy@example.com');
-        $affiliate->setIsActive(true);
+        $affiliate->setIsActive(false);
         $affiliate->setToken('symfony');
         $affiliate->addCategory($this->getReference('category-design'));
         $affiliate->addCategory($this->getReference('category-programming'));
