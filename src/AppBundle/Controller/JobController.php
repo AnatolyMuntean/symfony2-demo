@@ -17,7 +17,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 /**
  * Job controller.
  *
- * @Route("/")
+ * @Route("/job")
  */
 class JobController extends Controller
 {

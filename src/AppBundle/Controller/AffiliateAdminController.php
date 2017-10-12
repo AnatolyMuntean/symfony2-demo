@@ -24,6 +24,12 @@ class AffiliateAdminController extends Controller
         try {
             $affiliate->setIsActive(true);
             $em->flush();
+
+            $message = (new \Swift_Message('Jobeet affiliate token'))
+                ->setFrom('jobeet@example.com')
+                ->setTo('dev@localhost')
+                ->setBody($this->renderView('emails/registration.html.twig', ['affiliate' => $affiliate]), 'text/html');
+            $this->get('mailer')->send($message);
         }
         catch (\Exception $e) {
             $this->addFlash('sonata_flash_error', $e->getMessage());

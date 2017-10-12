@@ -15,7 +15,6 @@ class AffiliateAdmin extends AbstractAdmin
     protected $datagridValues = [
         '_sort_order' => 'ASC',
         '_sort_by'    => 'is_active',
-        'isActive'    => ['value' => 2],
     ];
 
     protected function configureDatagridFilters(DatagridMapper $filter)
