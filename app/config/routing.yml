@@ -1,3 +1,7 @@
+app_affiliate:
+    resource: "@AppBundle/Controller/AffiliateController.php"
+    type:     annotation
+
 api:
     resource: "@ApiBundle/Controller/"
     type:     rest

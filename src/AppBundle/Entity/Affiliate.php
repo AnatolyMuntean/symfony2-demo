@@ -27,6 +27,7 @@ class Affiliate
      *
      * @ORM\ManyToMany(targetEntity="Category", inversedBy="affiliates")
      * @ORM\JoinTable(name="affiliates_categories")
+     * @Assert\Count(min=1)
      */
     private $categories;
 
@@ -44,7 +45,6 @@ class Affiliate
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
-     * @Assert\NotBlank()
      */
     private $token;
 
@@ -55,7 +55,6 @@ class Affiliate
 
     /**
      * @ORM\Column(type="datetime")
-     * @Assert\NotBlank()
      */
     private $createdAt;
     /**
