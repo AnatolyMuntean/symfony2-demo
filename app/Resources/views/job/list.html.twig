@@ -1,5 +1,5 @@
 <table class="jobs">
-    {% for job in category.activejobs %}
+    {% for job in jobs %}
         <tr class="{{ cycle(['even', 'odd'], loop.index) }}">
             <td class="location">{{ job.location }}</td>
             <td class="position">

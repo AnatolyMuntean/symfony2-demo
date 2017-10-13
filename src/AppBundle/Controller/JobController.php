@@ -250,6 +250,52 @@ class JobController extends Controller
         );
     }
 
+    /**
+     * @Route("/search", name="job_search")
+     * @Method("GET")
+     */
+    public function searchAction(Request $request)
+    {
+        if (!$query = $request->query->get('query')) {
+            return $this->indexAction($request);
+        }
+
+        $page = $request->query->get('page', 1);
+        /** @var \FOS\ElasticaBundle\Finder\TransformedFinder $finder */
+        $finder = $this->container->get('fos_elastica.finder.app.job');
+
+        $filter = new \Elastica\Query\BoolQuery();
+        $filter->addMust(new \Elastica\Query\Term(['isActivated' => true]));
+
+        $rangeQuery = new \Elastica\Query\Range();
+        $rangeQuery->addField('expiresAt', ['gt' => \Elastica\Util::convertDateTimeObject(new \DateTime())]);
+        $filter->addMust($rangeQuery);
+
+        $query = \Elastica\Query::create($query);
+        $query->setPostFilter($filter);
+
+        /** @var \Knp\Component\Pager\Paginator $paginator */
+        $paginator = $this->get('knp_paginator');
+
+        $results = $finder->createPaginatorAdapter($query);
+        $pagination = $paginator->paginate($results, $page, $this->container->getParameter('max_jobs_on_category'));
+
+        $totalJobs = $pagination->getTotalItemCount();
+        $jobsPerPage = $this->container->getParameter('max_jobs_on_category');
+        $lastPage = ceil($totalJobs / $jobsPerPage);
+        $previousPage = $page > 1 ? $page - 1 : 1;
+        $nextPage = $page < $lastPage ? $page + 1 : $lastPage;
+
+        return $this->render('job/search.html.twig', [
+            'jobs' => $pagination->getItems(),
+            'last_page' => $lastPage,
+            'previous_page' => $previousPage,
+            'current_page' => $page,
+            'next_page' => $nextPage,
+            'total_jobs' => $totalJobs,
+        ]);
+    }
+
     private function createPublishForm(Job $job)
     {
         return $this->createFormBuilder(['token' => $job->getToken()])
