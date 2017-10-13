@@ -204,7 +204,6 @@ class JobControllerTest extends WebTestCase
         $job->setExpiresAt(new \DateTime());
         $em->flush();
         // Go to the preview page and extend the job
-        var_dump(sprintf('/job/%s/%s/%s/%s', $job->getCompanySlug(), $job->getLocationSlug(), $job->getToken(), $job->getPositionSlug()));
         $crawler = $client->request('GET', sprintf('/job/%s/%s/%s/%s', $job->getCompanySlug(), $job->getLocationSlug(), $job->getToken(), $job->getPositionSlug()));
         $crawler = $client->getCrawler();
         $form = $crawler->selectButton('Extend')->form();
